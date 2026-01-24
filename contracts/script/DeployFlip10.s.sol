@@ -7,6 +7,7 @@ import {Flip10Sessions} from "../src/Flip10Sessions.sol";
 contract DeployFlip10 is Script {
     function run() external {
         uint256 deployerKey = vm.envUint("PRIVATE_KEY");
+        address deployer = vm.addr(deployerKey);
         address treasury = vm.envAddress("TREASURY");
 
         // 80% to prize pool
@@ -15,7 +16,7 @@ contract DeployFlip10 is Script {
         vm.startBroadcast(deployerKey);
 
         Flip10Sessions flip10 = new Flip10Sessions(
-            msg.sender,
+            deployer,
             treasury,
             prizeBps
         );

@@ -46,14 +46,14 @@ contract Flip10SessionsTest is Test {
         uint256 treasuryBefore = treasury.balance;
 
         vm.prank(alice);
-        c.buyFlips{value: 1 ether}(sessionId);
+        c.buyFlips{value: 0.0005 ether}(sessionId, 0);
 
-        // Prize pool should get 0.8 ETH
+        // Prize pool should get 0.0004 ETH (80%)
         (, , , , , uint256 prizePool) = c.sessions(sessionId);
-        assertEq(prizePool, 0.8 ether);
+        assertEq(prizePool, 0.0004 ether);
 
-        // Treasury should receive 0.2 ETH
-        assertEq(treasury.balance - treasuryBefore, 0.2 ether);
+        // Treasury should receive 0.0001 ETH
+        assertEq(treasury.balance - treasuryBefore, 0.0001 ether);
     }
 
     function test_finalize_and_claim() public {
@@ -63,7 +63,7 @@ contract Flip10SessionsTest is Test {
         c.startSession(sessionId);
 
         vm.prank(alice);
-        c.buyFlips{value: 1 ether}(sessionId);
+        c.buyFlips{value: 0.0005 ether}(sessionId, 0);
 
         bytes32 proofHash = keccak256("proof");
         vm.prank(operator);
@@ -73,7 +73,7 @@ contract Flip10SessionsTest is Test {
         vm.prank(bob);
         c.claimPrize(sessionId);
 
-        assertEq(bob.balance - bobBefore, 0.8 ether);
+        assertEq(bob.balance - bobBefore, 0.0004 ether);
 
         (, , , , , uint256 prizePoolAfter) = c.sessions(sessionId);
         assertEq(prizePoolAfter, 0);
