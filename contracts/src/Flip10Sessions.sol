@@ -2,7 +2,9 @@
 pragma solidity ^0.8.24;
 
 import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
-import {ReentrancyGuard} from "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
+import {
+    ReentrancyGuard
+} from "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 
 /**
@@ -27,11 +29,21 @@ contract Flip10Sessions is Ownable, ReentrancyGuard {
         uint256 prizePoolWei;
     }
 
+    struct FlipPackage {
+        uint256 priceWei;
+        uint256 flips;
+        bool active;
+    }
+
     // sessionId => Session
     mapping(uint256 => Session) public sessions;
 
     // Authorized backend that can start/finalize sessions.
     mapping(address => bool) public operators;
+
+    // Flip packages available for purchase.
+    mapping(uint8 => FlipPackage) public flipPackages;
+    uint8 public packageCount;
 
     // Treasury address for platform revenue.
     address public treasury;
@@ -51,9 +63,30 @@ contract Flip10Sessions is Ownable, ReentrancyGuard {
     event PrizeBpsSet(uint16 prizeBps);
     event MaxFinalizeDelaySet(uint64 secondsDelay);
     event SessionStarted(uint256 indexed sessionId, uint64 startTime);
-    event FlipPackagePurchased(uint256 indexed sessionId, address indexed buyer, uint256 amountWei, uint256 toPrizeWei, uint256 toTreasuryWei);
-    event SessionFinalized(uint256 indexed sessionId, address indexed winner, uint64 endTime, bytes32 proofHash);
-    event PrizeClaimed(uint256 indexed sessionId, address indexed winner, uint256 amountWei);
+    event FlipPackagePurchased(
+        uint256 indexed sessionId,
+        address indexed buyer,
+        uint256 flips,
+        uint256 amountWei
+    );
+    event SessionFinalized(
+        uint256 indexed sessionId,
+        address indexed winner,
+        uint64 endTime,
+        bytes32 proofHash
+    );
+    event PrizeClaimed(
+        uint256 indexed sessionId,
+        address indexed winner,
+        uint256 amountWei
+    );
+    event FlipPackageSet(
+        uint8 indexed packageId,
+        uint256 priceWei,
+        uint256 flips,
+        bool active
+    );
+    event FlipPackageDisabled(uint8 indexed packageId);
 
     // -----------------------------
     // Errors
@@ -69,6 +102,9 @@ contract Flip10Sessions is Ownable, ReentrancyGuard {
     error InvalidWinner();
     error NothingToClaim();
     error FinalizeTooLate();
+    error InvalidPackagePrice();
+    error InvalidFlipAmount();
+    error PackageInactive();
 
     // -----------------------------
     // Modifiers
@@ -83,12 +119,24 @@ contract Flip10Sessions is Ownable, ReentrancyGuard {
     // Constructor / admin
     // -----------------------------
 
-    constructor(address initialOwner, address initialTreasury, uint16 initialPrizeBps) Ownable(initialOwner) {
+    constructor(
+        address initialOwner,
+        address initialTreasury,
+        uint16 initialPrizeBps
+    ) Ownable(initialOwner) {
         if (initialTreasury == address(0)) revert ZeroAddress();
-        if (initialPrizeBps == 0 || initialPrizeBps > 10_000) revert InvalidBps();
+        if (initialPrizeBps == 0 || initialPrizeBps > 10_000)
+            revert InvalidBps();
 
         treasury = initialTreasury;
         prizeBps = initialPrizeBps;
+
+        flipPackages[0] = FlipPackage(0.0005 ether, 250, true);
+        flipPackages[1] = FlipPackage(0.0009 ether, 500, true);
+        flipPackages[2] = FlipPackage(0.0017 ether, 1000, true);
+        flipPackages[3] = FlipPackage(0.0032 ether, 2000, true);
+
+        packageCount = 4;
 
         // Owner is also an operator by default.
         operators[initialOwner] = true;
@@ -115,9 +163,38 @@ contract Flip10Sessions is Ownable, ReentrancyGuard {
         emit PrizeBpsSet(newPrizeBps);
     }
 
-    function setMaxFinalizeDelaySeconds(uint64 secondsDelay) external onlyOwner {
+    function setMaxFinalizeDelaySeconds(
+        uint64 secondsDelay
+    ) external onlyOwner {
         maxFinalizeDelaySeconds = secondsDelay;
         emit MaxFinalizeDelaySet(secondsDelay);
+    }
+
+    function setFlipPackage(
+        uint8 packageId,
+        uint256 priceWei,
+        uint256 flips,
+        bool active
+    ) external onlyOwner {
+        if (priceWei == 0) revert InvalidPackagePrice();
+        if (flips == 0) revert InvalidFlipAmount();
+
+        flipPackages[packageId] = FlipPackage({
+            priceWei: priceWei,
+            flips: flips,
+            active: active
+        });
+
+        if (packageId >= packageCount) {
+            packageCount = packageId + 1;
+        }
+
+        emit FlipPackageSet(packageId, priceWei, flips, active);
+    }
+
+    function disableFlipPackage(uint8 packageId) external onlyOwner {
+        flipPackages[packageId].active = false;
+        emit FlipPackageDisabled(packageId);
     }
 
     // -----------------------------
@@ -138,29 +215,39 @@ contract Flip10Sessions is Ownable, ReentrancyGuard {
      * Players buy flip packages by paying ETH.
      * Session must be started and not finalized.
      */
-    function buyFlips(uint256 sessionId) external payable nonReentrant {
+    function buyFlips(
+        uint256 sessionId,
+        uint8 packageId
+    ) external payable nonReentrant {
         Session storage s = sessions[sessionId];
         if (!s.started) revert SessionNotStarted();
         if (s.finalized) revert SessionAlreadyFinalized();
-        if (msg.value == 0) revert();
+
+        FlipPackage memory pkg = flipPackages[packageId];
+
+        if (!pkg.active) revert PackageInactive();
+        if (msg.value != pkg.priceWei) revert InvalidPackagePrice();
 
         uint256 toPrize = (msg.value * prizeBps) / 10_000;
         uint256 toTreasury = msg.value - toPrize;
 
         s.prizePoolWei += toPrize;
 
-        // Send treasury share immediately.
         (bool ok, ) = treasury.call{value: toTreasury}("");
         require(ok, "TREASURY_TRANSFER_FAILED");
 
-        emit FlipPackagePurchased(sessionId, msg.sender, msg.value, toPrize, toTreasury);
+        emit FlipPackagePurchased(sessionId, msg.sender, pkg.flips, msg.value);
     }
 
     /**
      * Finalize the session with a winner.
      * proofHash is a commitment to the off-chain session log/proof.
      */
-    function finalizeSession(uint256 sessionId, address winner, bytes32 proofHash) external onlyOperator {
+    function finalizeSession(
+        uint256 sessionId,
+        address winner,
+        bytes32 proofHash
+    ) external onlyOperator {
         Session storage s = sessions[sessionId];
         if (!s.started) revert SessionNotStarted();
         if (s.finalized) revert SessionAlreadyFinalized();
@@ -168,7 +255,10 @@ contract Flip10Sessions is Ownable, ReentrancyGuard {
 
         // Finalize window
         if (maxFinalizeDelaySeconds != 0) {
-            if (block.timestamp > uint256(s.startTime) + uint256(maxFinalizeDelaySeconds)) revert FinalizeTooLate();
+            if (
+                block.timestamp >
+                uint256(s.startTime) + uint256(maxFinalizeDelaySeconds)
+            ) revert FinalizeTooLate();
         }
 
         s.finalized = true;
