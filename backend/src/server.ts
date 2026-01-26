@@ -2,7 +2,7 @@ import Fastify, { type FastifyInstance } from "fastify";
 import websocket from "@fastify/websocket";
 import dotenv from "dotenv";
 import { createHub } from "./ws/hub.js";
-import { clearSession, getPublicSessionSnapshot, getSession, hasActiveSession, startNewSession } from "./session/runtime.js";
+import { getPublicSessionSnapshot, getSession } from "./session/runtime.js";
 import type { WebSocket } from "ws";
 import { performFlip } from "./session/flip.js";
 import { headsProbability } from "./session/probability.js";
@@ -12,15 +12,15 @@ import { startDailySessionWatcher } from "./session/daily.js";
 import { startSessionTicker } from "./session/tick.js";
 import { buildPlayerSnapshot } from "./session/playerSnapshot.js";
 import { getNextSessionStart } from "./session/scheduler.js";
-import { buildFinalLeaderboard } from "./session/leaderboard.js";
 import { setLastFinalizedSession } from "./session/runtime.js";
-import { saveSession, loadSession } from "./persistence/sessionStore.js";
+import { clearSession, loadSession, saveSession } from "./persistence/sessionStore.js";
 import { restoreSessionFromDisk } from "./session/runtime.js";
 import { rebuildAllowanceFromChain } from "./chain/rebuildAllowance.js";
-import { finalizeSessionOnChain } from "./chain/finalizeSession.js";
 import { canConnect, onDisconnect } from "./ws/limits.js";
 import crypto from "crypto";
 import { verifyMessage } from "ethers";
+import { buildFinalLeaderboard } from "./session/leaderboard.js";
+import { finalizeSessionOnChain } from "./chain/finalizeSession.js";
 
 dotenv.config();
 
@@ -116,61 +116,6 @@ export async function buildServer(): Promise<FastifyInstance> {
             try {
                 const text = typeof raw === "string" ? raw : raw.toString("utf8");
                 const msg = JSON.parse(text);
-
-                // For testing purposes only. In production sessions are started automatically
-                if (msg?.type === "start_session") {
-                    if (hasActiveSession()) { console.log("Session already active"); return; }
-
-                    startNewSession();
-                    return;
-                }
-
-                if (msg?.type === "finalize_session") {
-                    const currentSession = getSession();
-                    if (!currentSession) { console.log("No active session"); return; }
-                    if(!msg.address) { console.log("No winner address provided"); return; }
-                    
-                    currentSession.finalized = true;
-                    const address = msg.address as string;
-
-                    const finalLeaderboard = buildFinalLeaderboard(currentSession);
-
-                    const finalized = {
-                        sessionId: currentSession.id,
-                        winner: address,
-                        finalLeaderboard,
-                        totalFlips: currentSession.totalFlips,
-                        endedAt: Date.now()
-                    };
-
-                    setLastFinalizedSession(finalized);
-
-                    finalizeSessionOnChain(currentSession.id, address)
-                        .catch((err: unknown) => {
-                            console.error("[CHAIN] Finalize failed", err);
-                        });
-
-                    saveSession({
-                        sessionId: currentSession.id,
-                        startedAt: currentSession.startedAt,
-                        finalized: true
-                    });
-
-                    hub.broadcast({
-                        type: "session_ended",
-                        data: {
-                            ...finalized,
-                            nextSessionStartsAt: getNextSessionStart(
-                                Number(process.env.SESSION_START_HOUR)
-                            )
-                        }
-                    });
-
-                    clearSession();
-
-                    return;
-                }
-                // End of testing block
 
                 if (msg?.type === "auth_request") {
                     const address = msg.address as string;
@@ -301,6 +246,7 @@ export async function buildServer(): Promise<FastifyInstance> {
 
                     currentSession.players.set(address, player);
 
+                    console.log(`[FLIP] Player ${address} flipped ${result ? "heads" : "tails"} (streak: ${player.streak}, p=${(p * 100).toFixed(2)}%)`);
                     ws.send(JSON.stringify({
                         type: "flip_result",
                         result: result ? "heads" : "tails",
@@ -316,6 +262,7 @@ export async function buildServer(): Promise<FastifyInstance> {
 
                     // Winner detection
                     if (player.streak >= 10) {
+                        console.log(`[SESSION] Player ${address} achieved 10 heads streak, finalizing session ${currentSession.id}`);
                         currentSession.finalized = true;
 
                         const finalLeaderboard = buildFinalLeaderboard(currentSession);
@@ -350,9 +297,9 @@ export async function buildServer(): Promise<FastifyInstance> {
                                 )
                             }
                         });
+
+                        clearSession();
                     }
-                    
-                    clearSession();
 
                     return;
                 }

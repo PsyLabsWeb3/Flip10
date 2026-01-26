@@ -193,6 +193,20 @@ npx wscat -c ws://localhost:3001/ws
 
 ---
 
+## Script usage
+
+### Start a session
+```bash
+npx ts-node scripts/start-session.ts
+```
+
+### Finalize a session with a winner
+```bash
+npx ts-node scripts/finalize-session.ts 0x1234567890123456789012345678901234567890
+```
+
+---
+
 ## Crash Recovery
 
 On startup, the backend:

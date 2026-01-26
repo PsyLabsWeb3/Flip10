@@ -14,14 +14,19 @@ export async function rebuildAllowanceFromChain(
     return;
   }
 
+  const latestBlock = await provider.getBlockNumber();
+
+  const fromBlock = Math.max(latestBlock - 9, 0);
+  const toBlock = latestBlock;
+
   const logs = await provider.getLogs({
     address: flip10.target,
     topics: [
       event.topicHash,
       "0x" + BigInt(sessionId).toString(16).padStart(64, "0")
     ],
-    fromBlock: 0,
-    toBlock: "latest"
+    fromBlock,
+    toBlock
   });
 
   for (const log of logs) {

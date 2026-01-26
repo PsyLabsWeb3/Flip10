@@ -8,19 +8,28 @@ if (Number.isNaN(SESSION_START_HOUR)) {
 }
 
 export function startDailySessionWatcher() {
-  // Check every 60 seconds
-  setInterval(() => {
+  function scheduleNextCheck() {
     const now = Date.now();
-    const todayStart = getTodaySessionStart(SESSION_START_HOUR);
+    let nextCheckTime = getTodaySessionStart(SESSION_START_HOUR);
 
-    // Too early
-    if (now < todayStart) return;
+    // If today's session start time has passed, schedule for tomorrow
+    if (now >= nextCheckTime) {
+      nextCheckTime += 24 * 60 * 60 * 1000;
+    }
 
-    // Session already running
-    if (hasActiveSession()) return;
+    const delayMs = nextCheckTime - now;
 
-    // Start session
-    console.log("[SESSION] Starting daily session");
-    startNewSession();
-  }, 60_000);
+    setTimeout(() => {
+      // Only start session if one isn't already running
+      if (!hasActiveSession()) {
+        console.log("[SESSION] Starting daily session");
+        startNewSession();
+      }
+
+      // Schedule the next check for tomorrow
+      scheduleNextCheck();
+    }, delayMs);
+  }
+
+  scheduleNextCheck();
 }

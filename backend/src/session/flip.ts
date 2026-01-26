@@ -6,6 +6,8 @@ export function performFlip(
   nonce: number,
   probability: number
 ): boolean {
+  console.log(`[FLIP] Performing flip for player ${player} with probability ${(probability * 100).toFixed(2)}% (nonce: ${nonce})`);
+  
   const hash = keccak256(
     toUtf8Bytes(`${seed}:${player}:${nonce}`)
   );

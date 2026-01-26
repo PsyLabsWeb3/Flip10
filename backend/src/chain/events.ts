@@ -3,17 +3,41 @@ import { addFlips } from "../session/allowance.js";
 import { getSession } from "../session/runtime.js";
 
 export function subscribeToFlipPurchases() {
+  console.log("[WS] Subscribing to FlipPackagePurchased");
+
   flip10.on(
     "FlipPackagePurchased",
     (
       sessionId: bigint,
       buyer: string,
-      flips: bigint
+      flips: bigint,
+      amountWei: bigint,
+      event
     ) => {
-      const session = getSession();
-      if (!session) return;
+      console.log("[RAW EVENT]", {
+        sessionId: sessionId.toString(),
+        buyer,
+        flips: flips.toString(),
+        amountWei: amountWei.toString(),
+        tx: event?.transactionHash,
+        block: event?.blockNumber
+      });
 
-      if (BigInt(session.id) !== sessionId) return;
+      const session = getSession();
+
+      if (!session) {
+        console.warn("[FLIPS] No active session, skipping");
+        return;
+      }
+
+      if (BigInt(session.id) !== sessionId) {
+        console.warn(
+          "[FLIPS] Session mismatch",
+          session.id,
+          sessionId.toString()
+        );
+        return;
+      }
 
       addFlips(buyer, Number(flips));
       
