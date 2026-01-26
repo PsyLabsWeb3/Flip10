@@ -205,6 +205,11 @@ npx ts-node scripts/start-session.ts
 npx ts-node scripts/finalize-session.ts 0x1234567890123456789012345678901234567890
 ```
 
+### Add flips to a user
+```bash
+npx ts-node scripts/add-flips.ts 0x1234567890123456789012345678901234567890 250
+```
+
 ---
 
 ## Crash Recovery
