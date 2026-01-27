@@ -57,13 +57,18 @@ export const Claim: React.FC = () => {
                     toBlock: latestBlock,
                 });
 
-                const claimedSessionIds = new Set(claimedLogs.map((log) => log.args.sessionId!.toString()));
+                // Type assertion for logs with args
+                type FinalizedLogArgs = { sessionId: bigint; winner: string; endTime: bigint; proofHash: string };
+                type ClaimedLogArgs = { sessionId: bigint; winner: string; amountWei: bigint };
+
+                const claimedSessionIds = new Set(claimedLogs.map((log) => ((log as unknown as { args: ClaimedLogArgs }).args.sessionId).toString()));
 
                 // For each finalized session, check the current prize pool
                 const sessions: WonSession[] = [];
                 for (const log of finalizedLogs) {
-                    const sessionId = log.args.sessionId!;
-                    const endTime = log.args.endTime!;
+                    const args = (log as unknown as { args: FinalizedLogArgs }).args;
+                    const sessionId = args.sessionId;
+                    const endTime = args.endTime;
                     const claimed = claimedSessionIds.has(sessionId.toString());
 
                     // Read current session data to get prize pool

@@ -64,7 +64,7 @@ export const BuyFlipsModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
     const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
 
     const handleBuy = async (pkg: FlipPackage) => {
-        if (!session) {
+        if (!session || session.id === undefined) {
             console.error('No session available');
             return;
         }
