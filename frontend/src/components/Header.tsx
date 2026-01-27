@@ -1,6 +1,8 @@
 import React from 'react';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { injected } from 'wagmi/connectors';
+import flip10Logo from '/flip10-logo.png';
+import { playButtonPress, playButtonRelease } from '../utils/sfx';
 
 export const Header: React.FC = () => {
     const { address, isConnected } = useAccount();
@@ -16,7 +18,7 @@ export const Header: React.FC = () => {
     };
 
     return (
-        <header style={{
+        <header className="header-main" style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -24,7 +26,20 @@ export const Header: React.FC = () => {
             background: 'var(--color-primary)',
             borderBottom: 'var(--border-brutal)'
         }}>
-            <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'var(--color-black)' }}>FLIP10</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <img src={flip10Logo} alt="Flip10" style={{ height: '48px' }} />
+                <span style={{ fontSize: '0.75rem', color: 'var(--color-black)' }}>
+                    powered by{' '}
+                    <a
+                        href="https://github.com/PsyLabsWeb3"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: 'var(--color-black)', fontWeight: 700 }}
+                    >
+                        Psy Labs
+                    </a>
+                </span>
+            </div>
 
             <div>
                 {isConnected ? (
@@ -37,10 +52,10 @@ export const Header: React.FC = () => {
                         }}>
                             {address?.slice(0, 6)}...{address?.slice(-4)}
                         </span>
-                        <button onClick={handleDisconnect} className="ghost">Disconnect</button>
+                        <button onMouseDown={playButtonPress} onMouseUp={playButtonRelease} onClick={handleDisconnect} className="ghost">Disconnect</button>
                     </div>
                 ) : (
-                    <button onClick={() => connect({ connector: injected() })}>Connect Wallet</button>
+                    <button onMouseDown={playButtonPress} onMouseUp={playButtonRelease} onClick={() => connect({ connector: injected() })}>Connect Wallet</button>
                 )}
             </div>
         </header>

@@ -5,6 +5,7 @@ import { formatEther } from 'viem';
 import { Flip10SessionsABI } from '../abis/Flip10Sessions';
 import { useGameStore } from '../store/useGameStore';
 import { chainId as targetChainId } from '../wagmi';
+import { playButtonPress, playButtonRelease } from '../utils/sfx';
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS as `0x${string}`;
 
@@ -95,8 +96,8 @@ export const BuyFlipsModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
     // Close modal on success and refresh player state
     React.useEffect(() => {
         if (isSuccess) {
-            if (address) sendHello(address); // Request updated player state from server
             setTimeout(() => {
+                if (address) sendHello(address); // Request updated player state from server
                 onClose();
             }, 1500);
         }
@@ -110,7 +111,7 @@ export const BuyFlipsModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                 {!isConnected ? (
                     <div style={{ textAlign: 'center', padding: '2rem 0' }}>
                         <p style={{ marginBottom: '1.5rem', color: '#666' }}>Connect your wallet to buy flips</p>
-                        <button onClick={() => connect({ connector: injected() })}>Connect Wallet</button>
+                        <button onMouseDown={playButtonPress} onMouseUp={playButtonRelease} onClick={() => connect({ connector: injected() })}>Connect Wallet</button>
                     </div>
                 ) : isSuccess ? (
                     <div style={{ textAlign: 'center', padding: '2rem 0' }}>
@@ -134,6 +135,8 @@ export const BuyFlipsModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                                 {packages.map((pkg) => (
                                     <button
                                         key={pkg.id}
+                                        onMouseDown={playButtonPress}
+                                        onMouseUp={playButtonRelease}
                                         onClick={() => handleBuy(pkg)}
                                         disabled={isPending || isConfirming || isSwitchingChain}
                                         style={{
@@ -156,6 +159,10 @@ export const BuyFlipsModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                             </div>
                         )}
 
+                        <p style={{ color: '#666', marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+                            * Flips purchased are only valid for this match.
+                        </p>
+
                         {(isPending || isConfirming || isSwitchingChain) && (
                             <p style={{ textAlign: 'center', marginTop: '1rem', fontStyle: 'italic' }}>
                                 {isSwitchingChain ? 'Switching network...' : isPending ? 'Confirm in wallet...' : 'Confirming transaction...'}
@@ -166,13 +173,13 @@ export const BuyFlipsModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                             <>
                                 {console.error('Transaction error:', writeError)}
                                 <p style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--color-error)', fontSize: '0.875rem' }}>
-                                    Transaction failed. Please try again or switch to Base Sepolia network.
+                                    Transaction failed. Please try again.
                                 </p>
                             </>
                         )}
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-                            <button onClick={onClose} className="ghost" disabled={isPending || isConfirming}>
+                            <button onMouseDown={playButtonPress} onMouseUp={playButtonRelease} onClick={onClose} className="ghost" disabled={isPending || isConfirming}>
                                 Cancel
                             </button>
                         </div>

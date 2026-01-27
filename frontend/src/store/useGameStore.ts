@@ -1,15 +1,24 @@
 import { create } from 'zustand'
 
+export interface LastFinalizedSession {
+    sessionId: number
+    winner: string
+    finalLeaderboard: { address: string; streak: number }[]
+    totalFlips: number
+    endedAt: number
+}
+
 export interface SessionData {
     active: boolean
-    id: number
-    startedAt: number
+    id?: number
+    startedAt?: number
     totalFlips: number
-    headsProbability: number
-    leaderboard: LeaderboardEntry[]
-    players: number
+    headsProbability?: number
+    leaderboard?: LeaderboardEntry[]
+    players?: number
     winner?: string
     nextSessionStartsAt?: number
+    lastSession?: LastFinalizedSession
 }
 
 export interface LeaderboardEntry {
@@ -31,6 +40,7 @@ interface GameStore {
     authRejected: boolean
     isFlipping: boolean
     showBuyModal: boolean
+    showWinModal: boolean
     session: SessionData | null
     player: PlayerData | null
     lastResult: 'heads' | 'tails' | null
@@ -45,6 +55,7 @@ interface GameStore {
     sendHello: (address: string) => void
     retryAuth: () => void
     setShowBuyModal: (value: boolean) => void
+    setShowWinModal: (value: boolean) => void
 
     // Internal: set pending auth (called from message handler)
     _setPendingAuth: (nonce: string | null, address: string | null) => void
@@ -61,6 +72,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     authRejected: false,
     isFlipping: false,
     showBuyModal: false,
+    showWinModal: false,
     session: null,
     player: null,
     lastResult: null,
@@ -105,6 +117,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
                     case 'session_tick':
                         // Preserve leaderboard while flipping to avoid spoiling the result
+                        console.log('session_tick', data);
                         if (get().isFlipping) {
                             set((state) => ({
                                 session: state.session
@@ -142,7 +155,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
                         }
                         break;
 
-                    case 'session_ended':
+                    case 'session_ended': {
+                        const currentAddress = get().pendingAuthAddress;
+                        const winner = msg.data.winner;
+                        // Check if current user won (case-insensitive address comparison)
+                        const isWinner = currentAddress && winner &&
+                            currentAddress.toLowerCase() === winner.toLowerCase();
+
                         set((state) => ({
                             session: state.session ? {
                                 ...state.session,
@@ -150,9 +169,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
                                 winner: msg.data.winner,
                                 leaderboard: msg.data.leaderboard,
                                 nextSessionStartsAt: msg.data.nextSessionStartsAt
-                            } : null
+                            } : null,
+                            showWinModal: isWinner ? true : state.showWinModal
                         }));
                         break;
+                    }
 
                     case 'auth_challenge':
                         // Backend sent us a nonce to sign
@@ -163,6 +184,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                     case 'auth_ok':
                         console.log('Authentication successful.');
                         set({ isAuthenticated: true, isAuthenticating: false, pendingAuthNonce: null });
+                        get().sendHello(get().pendingAuthAddress!);
                         break;
 
                     case 'auth_failed':
@@ -233,6 +255,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     },
 
     setShowBuyModal: (value) => set({ showBuyModal: value }),
+    setShowWinModal: (value) => set({ showWinModal: value }),
 
     _setPendingAuth: (nonce, address) => set({ pendingAuthNonce: nonce, pendingAuthAddress: address }),
     _setAuthenticated: (value) => set({ isAuthenticated: value, isAuthenticating: false }),

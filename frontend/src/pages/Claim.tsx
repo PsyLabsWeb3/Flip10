@@ -32,22 +32,29 @@ export const Claim: React.FC = () => {
         const scanForWins = async () => {
             setIsLoading(true);
             try {
+                // Only fetch logs from the most recent 50,000 blocks (RPC limit)
+                const BLOCK_RANGE = 50000n;
+                const latestBlock = await publicClient.getBlockNumber();
+                const fromBlock = latestBlock > BLOCK_RANGE ? latestBlock - BLOCK_RANGE : 0n;
+
                 // Get SessionFinalized logs where winner = address
                 const finalizedLogs = await publicClient.getLogs({
                     address: CONTRACT_ADDRESS,
-                    event: parseAbiItem('event SessionFinalized(uint256 indexed sessionId, address indexed winner, uint64 endTime, bytes32 proofHash)'),
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    event: parseAbiItem('event SessionFinalized(uint256 indexed sessionId, address indexed winner, uint64 endTime, bytes32 proofHash)') as any,
                     args: { winner: address },
-                    fromBlock: 'earliest',
-                    toBlock: 'latest',
+                    fromBlock,
+                    toBlock: latestBlock,
                 });
 
                 // Get PrizeClaimed logs to check which ones were already claimed
                 const claimedLogs = await publicClient.getLogs({
                     address: CONTRACT_ADDRESS,
-                    event: parseAbiItem('event PrizeClaimed(uint256 indexed sessionId, address indexed winner, uint256 amountWei)'),
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    event: parseAbiItem('event PrizeClaimed(uint256 indexed sessionId, address indexed winner, uint256 amountWei)') as any,
                     args: { winner: address },
-                    fromBlock: 'earliest',
-                    toBlock: 'latest',
+                    fromBlock,
+                    toBlock: latestBlock,
                 });
 
                 const claimedSessionIds = new Set(claimedLogs.map((log) => log.args.sessionId!.toString()));
@@ -185,7 +192,7 @@ export const Claim: React.FC = () => {
             )}
 
             <div style={{ marginTop: '2rem', fontSize: '0.875rem', color: '#666' }}>
-                <p>This page scans the blockchain for sessions you've won.</p>
+                <p>This page scans the blockchain for sessions you've won. <br /><br />It will only show sessions from the last 50,000 blocks (~1 day).</p>
             </div>
         </div>
     );

@@ -18,7 +18,8 @@ export const config = createConfig({
     transports: {
         [mainnet.id]: http(),
         [base.id]: http(),
-        [baseSepolia.id]: http(),
+        // Use PublicNode's free RPC for Base Sepolia - no API key required
+        [baseSepolia.id]: http('https://base-sepolia-rpc.publicnode.com'),
     },
 })
 
