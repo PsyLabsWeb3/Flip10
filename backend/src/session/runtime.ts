@@ -110,7 +110,7 @@ export function getSession(): RuntimeSession | null {
 }
 
 export function getPublicSessionSnapshot() {
-  if (!session) {
+  if (!session || session.finalized) {
     if (lastFinalizedSession) {
       return {
         active: false,
