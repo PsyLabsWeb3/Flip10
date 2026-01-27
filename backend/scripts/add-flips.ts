@@ -27,6 +27,8 @@ async function main() {
     addFlips(address, count);
 
     console.log("[SCRIPT] Added flips successfully");
+
+    process.exit(0);
 }
 
 main().catch((err) => {

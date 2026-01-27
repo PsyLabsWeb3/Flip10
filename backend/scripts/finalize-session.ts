@@ -56,6 +56,8 @@ async function main() {
     const nextSessionStart = getNextSessionStart(Number(process.env.SESSION_START_HOUR));
     console.log("[SCRIPT] Session finalized successfully");
     console.log("[SCRIPT] Next session starts at:", new Date(nextSessionStart).toISOString());
+
+    process.exit(0);
 }
 
 main().catch((err) => {

@@ -12,6 +12,8 @@ async function main() {
     console.log("[SCRIPT] Starting new session");
     startNewSession();
     console.log("[SCRIPT] Session started successfully");
+
+    process.exit(0);
 }
 
 main().catch((err) => {
