@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useAccount, useConnect } from 'wagmi';
 import { useGameStore } from '../store/useGameStore';
 import { CoinScene } from '../components/CoinScene';
-import { Leaderboard } from '../components/Leaderboard';
+import { LeaderboardModal } from '../components/LeaderboardModal';
 import { BuyFlipsModal } from '../components/BuyFlipsModal';
 import { Tooltip, ElapsedTimeTooltip } from '../components/Tooltip';
 import { playButtonPress, playButtonRelease, playFlip } from '../utils/sfx';
@@ -11,6 +11,8 @@ export const Home: React.FC = () => {
     const { isConnected: isWalletConnected } = useAccount();
     const { connect: connectWallet, connectors } = useConnect();
     const { connect, isConnected, session, flip, isFlipping, player, isAuthenticated, authRejected, retryAuth, showBuyModal, setShowBuyModal } = useGameStore();
+
+    const [showLeaderboard, setShowLeaderboard] = React.useState(false);
 
     useEffect(() => {
         connect();
@@ -27,8 +29,10 @@ export const Home: React.FC = () => {
     };
 
     const handleConnect = () => {
-        // Use first available connector
-        const connector = connectors[0];
+        // Enforce Coinbase Wallet (Smart Wallet)
+        // Since we removed 'injected', this should be the only/primary option.
+        const connector = connectors.find(c => c.id === 'coinbaseWalletSDK') || connectors[0];
+
         if (connector) {
             connectWallet({ connector });
         }
@@ -106,6 +110,25 @@ export const Home: React.FC = () => {
                         )}
                     </>
                 )}
+
+                {/* Leaderboard Button */}
+                <div
+                    onClick={() => setShowLeaderboard(true)}
+                    onMouseDown={playButtonPress}
+                    onMouseUp={playButtonRelease}
+                    style={{
+                        ...statBoxStyle,
+                        background: 'var(--color-primary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                        fontSize: '0.85rem'
+                    }}
+                >
+                    📜 LEADERBOARD
+                </div>
             </div>
 
             {/* Player Stats - Only show when session is active */}
@@ -146,7 +169,7 @@ export const Home: React.FC = () => {
                 </div>
             ) : null}
 
-            {/* Main Content - Coin and Leaderboard */}
+            {/* Main Content - Coin Only */}
             <div style={{
                 display: 'flex',
                 gap: '0.5rem',
@@ -154,19 +177,8 @@ export const Home: React.FC = () => {
                 minHeight: 0
             }}>
                 {/* Coin Scene */}
-                <div style={{ flex: 2, minWidth: 0, minHeight: 0 }}>
+                <div style={{ flex: 1, minWidth: 0, minHeight: 0 }}>
                     <CoinScene />
-                </div>
-
-                {/* Leaderboard - Hidden on very small screens */}
-                <div style={{
-                    flex: 1,
-                    minWidth: '120px',
-                    maxWidth: '200px',
-                    display: 'flex',
-                    minHeight: 0
-                }}>
-                    <Leaderboard />
                 </div>
             </div>
 
@@ -214,6 +226,7 @@ export const Home: React.FC = () => {
             )}
 
             {showBuyModal && <BuyFlipsModal onClose={() => setShowBuyModal(false)} />}
+            {showLeaderboard && <LeaderboardModal onClose={() => setShowLeaderboard(false)} />}
         </div>
     );
 };

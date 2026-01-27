@@ -12,7 +12,8 @@ import { playButtonPress, playButtonRelease, getMuted, setMuted } from './utils/
 
 function AppContent() {
   // Initialize MiniKit
-  const { setFrameReady, isFrameReady } = useMiniKit();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { setFrameReady, isFrameReady, user } = useMiniKit() as any;
 
   useEffect(() => {
     if (!isFrameReady) setFrameReady();
@@ -60,9 +61,16 @@ function AppContent() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <img src="/flip10-logo.png" alt="Flip10" style={{ height: '32px' }} />
-          <span style={{ fontSize: '0.65rem', color: 'var(--color-black)' }}>
-            by <strong>Psy Labs</strong>
-          </span>
+          <div>
+            <span style={{ fontSize: '0.65rem', color: 'var(--color-black)', display: 'block', lineHeight: 1 }}>
+              by <strong>Psy Labs</strong>
+            </span>
+            {user?.username && (
+              <span style={{ fontSize: '0.65rem', color: 'var(--color-accent)', fontWeight: 700 }}>
+                @{user.username}
+              </span>
+            )}
+          </div>
         </div>
         {/* Mute button */}
         <Tooltip content={isMuted ? '🔇 Tap to unmute' : '🔊 Tap to mute'}>
@@ -149,25 +157,7 @@ function AppContent() {
         </Routes>
       </main>
 
-      {/* Built on Base badge - smaller for mobile */}
-      <div style={{
-        position: 'fixed',
-        bottom: '0.5rem',
-        right: '0.5rem',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.35rem',
-        background: 'var(--color-white)',
-        padding: '0.35rem 0.75rem',
-        border: 'var(--border-brutal)',
-        boxShadow: 'var(--shadow-brutal)',
-        fontSize: '0.7rem',
-        fontWeight: 700,
-        zIndex: 100
-      }}>
-        built on
-        <img src="/base-logo.png" alt="Base" style={{ height: '18px' }} />
-      </div>
+
 
       {showHowToPlay && <HowToPlayModal onClose={() => setShowHowToPlay(false)} />}
       {showWinModal && <WinModal onClose={() => setShowWinModal(false)} />}

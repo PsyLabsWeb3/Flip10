@@ -86,6 +86,14 @@ export const WinModal: React.FC<WinModalProps> = ({ onClose }) => {
         navigate('/claim');
     };
 
+    const handleShare = () => {
+        const shareText = `I just flipped 10 heads in a row on Flip10! 🏆\n\nCan you beat my luck?`;
+        // Using Farcaster Intent URL which is the standard way to trigger a cast 
+        // from a web view or mini-app.
+        const intentUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`;
+        window.open(intentUrl, '_blank');
+    };
+
     return (
         <div
             className="modal-overlay"
@@ -140,6 +148,21 @@ export const WinModal: React.FC<WinModalProps> = ({ onClose }) => {
                         }}
                     >
                         🎁 CLAIM REWARD
+                    </button>
+                    <button
+                        onMouseDown={playButtonPress}
+                        onMouseUp={playButtonRelease}
+                        onClick={handleShare}
+                        style={{
+                            padding: '1rem 2rem',
+                            fontSize: '1.2rem',
+                            background: 'var(--color-accent)',
+                            color: 'var(--color-black)',
+                            fontWeight: 700,
+                            border: 'none',
+                        }}
+                    >
+                        📤 SHARE
                     </button>
                     <button
                         onMouseDown={playButtonPress}
