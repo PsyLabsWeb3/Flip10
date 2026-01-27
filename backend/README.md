@@ -197,17 +197,17 @@ npx wscat -c ws://localhost:3001/ws
 
 ### Start a session
 ```bash
-npx ts-node scripts/start-session.ts
+node --loader ts-node/esm scripts/start-session.ts
 ```
 
 ### Finalize a session with a winner
 ```bash
-npx ts-node scripts/finalize-session.ts 0x1234567890123456789012345678901234567890
+node --loader ts-node/esm scripts/finalize-session.ts 0x1234567890123456789012345678901234567890
 ```
 
 ### Add flips to a user
 ```bash
-npx ts-node scripts/add-flips.ts 0x1234567890123456789012345678901234567890 250
+node --loader ts-node/esm scripts/add-flips.ts 0x1234567890123456789012345678901234567890 250
 ```
 
 ---
