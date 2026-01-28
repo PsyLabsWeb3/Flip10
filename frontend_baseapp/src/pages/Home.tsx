@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useAccount, useConnect } from 'wagmi';
+import { Wallet, ConnectWallet } from '@coinbase/onchainkit/wallet';
 import { useGameStore } from '../store/useGameStore';
 import { CoinScene } from '../components/CoinScene';
 import { LeaderboardModal } from '../components/LeaderboardModal';
@@ -211,7 +212,14 @@ export const Home: React.FC = () => {
                             maxWidth: '200px'
                         }}
                     >
-                        {isFlipping ? 'FLIPPING...' : (!isWalletConnected ? 'CONNECT' : (!isAuthenticated ? 'SIGN IN' : 'FLIP 🪙'))}
+                        {isFlipping ? 'FLIPPING...' : (!isWalletConnected ? (
+                            <Wallet>
+                                <ConnectWallet
+                                    text="CONNECT WALLET"
+                                    className="bg-[#ff6b35] text-[#fffef0] font-bold border-[3px] border-[#1a1a1a] shadow-[4px_4px_0px_0px_#1a1a1a] rounded-none px-6 py-2.5 h-auto min-h-0 hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-[4px] active:translate-y-[4px] transition-all"
+                                />
+                            </Wallet>
+                        ) : (!isAuthenticated ? 'SIGN IN' : 'FLIP 🪙'))}
                     </button>
                     <button
                         onMouseDown={playButtonPress}

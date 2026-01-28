@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { Identity, Avatar, Name } from '@coinbase/onchainkit/identity';
 import { useGameStore } from '../store/useGameStore';
 
 export const Leaderboard: React.FC = () => {
@@ -138,7 +139,13 @@ export const Leaderboard: React.FC = () => {
                                 >
                                     <td style={{ fontWeight: 700, padding: '0.35rem 0.25rem' }}>{i + 1}</td>
                                     <td style={{ fontFamily: 'monospace', padding: '0.35rem 0.25rem', fontSize: '0.7rem' }}>
-                                        {entry.address.slice(0, 6)}...{entry.address.slice(-4)}
+                                        <Identity
+                                            address={entry.address as `0x${string}`}
+                                            schemaId="0xf8b05c79f090979bf4a80270aba232dff11a10d9ca55c4f88de95317970f0de9"
+                                        >
+                                            <Avatar />
+                                            <Name />
+                                        </Identity>
                                     </td>
                                     <td style={{ padding: '0.35rem 0.25rem' }}>
                                         <span style={{

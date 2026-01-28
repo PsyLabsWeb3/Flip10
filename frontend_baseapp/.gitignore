@@ -4,3 +4,4 @@ node_modules/
 baseapp.md
 migration_prompt.md
 package-lock.json
+scripts/

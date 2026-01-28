@@ -1,3 +1,4 @@
+@import '@coinbase/onchainkit/styles.css';
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap');
 
 :root {
@@ -292,20 +293,20 @@ tr:hover {
   h1 {
     font-size: 1.75rem;
   }
-  
+
   h2 {
     font-size: 1.25rem;
   }
-  
+
   h3 {
     font-size: 1rem;
   }
-  
+
   button {
     padding: 0.6em 1.2em;
     font-size: 0.9em;
   }
-  
+
   .modal {
     padding: 1rem;
     min-width: auto;
@@ -323,7 +324,7 @@ tr:hover {
     padding: 0.35rem 0.75rem !important;
     font-size: 0.8rem !important;
   }
-  
+
   .modal {
     padding: 0.75rem;
     max-height: 85vh;

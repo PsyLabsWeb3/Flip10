@@ -1,36 +1,32 @@
 {
   "accountAssociation": {
-    "header": "TODO_GENERATE_HEADER_FROM_YOUR_FID",
-    "payload": "TODO_GENERATE_PAYLOAD_FOR_YOUR_DOMAIN",
-    "signature": "TODO_GENERATE_SIGNATURE_WITH_YOUR_KEY"
-  },
-  "baseBuilder": {
-    "allowedAddresses": [
-      "0x..."
-    ]
+    "header": "eyJmaWQiOjIwMzkwLCJ0eXBlIjoiYXV0aCIsImtleSI6IjB4RjA3NDFhMGI5ZjhBN2M2ZUUzNzQwYkQyMjNBODQ1N0UxNzM5MjIyMyJ9",
+    "payload": "eyJkb21haW4iOiJmbGlwMTAucHN5bGFicy54eXoifQ",
+    "signature": "PLACEHOLDER_SIGNATURE_RUN_SCRIPT_TO_GENERATE"
   },
   "frame": {
     "version": "1",
-    "name": "Minikit Vite",
-    "homeUrl": "https://mini-vite.vercel.app",
-    "iconUrl": "https://mini-vite.vercel.app/icon.png",
-    "splashImageUrl": "https://mini-vite.vercel.app/icon.png",
-    "splashBackgroundColor": "#000000",
-    "webhookUrl": "https://ex.co/api/webhook",
-    "subtitle": "minikit vite example",
-    "description": "minikit vite example",
+    "name": "Flip10 Base App",
+    "homeUrl": "https://flip10.psylabs.xyz",
+    "iconUrl": "https://flip10.psylabs.xyz/icon.png",
+    "splashImageUrl": "https://flip10.psylabs.xyz/icon.png",
+    "splashBackgroundColor": "#fffef0",
+    "webhookUrl": "https://flip10.psylabs.xyz/api/webhook",
+    "subtitle": "PvP Coin Flip Arena",
+    "description": "Flip against the world. Win streaks, climb the leaderboard, and claim ETH prizes.",
     "screenshotUrls": [],
     "primaryCategory": "social",
     "tags": [
-      "example",
-      "miniapp",
-      "baseapp"
+      "game",
+      "pvp",
+      "flip",
+      "base"
     ],
-    "heroImageUrl": "https://mini-vite.vercel.app/hero.png",
-    "tagline": "minikit vite",
-    "ogTitle": "Example Mini App",
-    "ogDescription": "Build Mini Apps with Vite.",
-    "ogImageUrl": "https://mini-vite.vercel.app/hero.png",
+    "heroImageUrl": "https://flip10.psylabs.xyz/hero.png",
+    "tagline": "Flip. Win. Dominate.",
+    "ogTitle": "Flip10 Base App",
+    "ogDescription": "PvP Coin Flip Arena on Base",
+    "ogImageUrl": "https://flip10.psylabs.xyz/hero.png",
     "noindex": true
   }
 }
