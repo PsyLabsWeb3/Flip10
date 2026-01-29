@@ -55,81 +55,70 @@ export const Home: React.FC = () => {
                 flexWrap: 'wrap',
                 flexShrink: 0
             }}>
-                {/* Live/Waiting Status */}
+                {/* Live/Waiting Status + Session ID */}
                 <div style={{
                     ...statBoxStyle,
                     background: 'var(--color-white)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.5rem',
-                    flex: '1 1 auto'
+                    gap: '0.75rem',
+                    flex: '1 1 auto',
+                    minWidth: '140px'
                 }}>
-                    {isConnected ? (
-                        isSessionActive ? (
-                            <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        {isConnected ? (
+                            isSessionActive ? (
                                 <div className="status-indicator online" />
-                                <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>LIVE</span>
-                            </>
-                        ) : (
-                            <>
+                            ) : (
                                 <div className="status-indicator offline" />
-                                <span style={{ fontWeight: 700, fontSize: '0.7rem' }}>WAITING</span>
-                            </>
-                        )
-                    ) : (
-                        <>
+                            )
+                        ) : (
                             <div className="status-indicator offline" />
-                            <span style={{ fontWeight: 700, fontSize: '0.7rem' }}>CONNECTING...</span>
-                        </>
-                    )}
+                        )}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+                        <span style={{ fontWeight: 800, fontSize: '0.8rem' }}>
+                            {isConnected ? (isSessionActive ? 'LIVE' : 'WAITING') : 'CONNECTING'}
+                        </span>
+                        {session && (isSessionActive || hasLastSession) && (
+                            <span style={{ fontSize: '0.65rem', fontWeight: 700, opacity: 0.6 }}>
+                                #{hasLastSession ? session.lastSession?.sessionId : session.id}
+                            </span>
+                        )}
+                    </div>
                 </div>
 
-                {session && (isSessionActive || hasLastSession) && (
-                    <>
-                        {/* Session ID */}
-                        <ElapsedTimeTooltip startedAt={session?.startedAt || session?.lastSession?.endedAt || 0}>
-                            <div style={{ ...statBoxStyle, background: 'var(--color-warning)', cursor: 'help' }}>
-                                <div style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase' }}>
-                                    {hasLastSession ? 'Last' : 'Session'}
-                                </div>
-                                <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>
-                                    #{hasLastSession ? session.lastSession?.sessionId : session.id}
-                                </div>
-                            </div>
-                        </ElapsedTimeTooltip>
-
-                        {/* Heads % - Only show when active */}
-                        {isSessionActive && (
-                            <Tooltip content="📈 Heads probability scales with time + global flips">
-                                <div style={{ ...statBoxStyle, background: 'var(--color-accent)', cursor: 'help' }}>
-                                    <div style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase' }}>Heads %</div>
-                                    <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>
-                                        {((session.headsProbability ?? 0) * 100).toFixed(1)}%
-                                    </div>
-                                </div>
-                            </Tooltip>
-                        )}
-                    </>
-                )}
-
-                {/* Leaderboard Button */}
+                {/* Leaderboard Button - Now in Row 1, taking the 'Session' spot (Yellow) */}
                 <div
                     onClick={() => setShowLeaderboard(true)}
                     onMouseDown={playButtonPress}
                     onMouseUp={playButtonRelease}
                     style={{
                         ...statBoxStyle,
-                        background: 'var(--color-primary)',
+                        background: 'var(--color-warning)', // Yellow like the session was
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         cursor: 'pointer',
-                        fontWeight: 700,
-                        fontSize: '0.85rem'
+                        fontWeight: 800,
+                        fontSize: '0.75rem',
+                        minWidth: '110px'
                     }}
                 >
                     📜 LEADERBOARD
                 </div>
+
+                {/* Heads % - Only show when active */}
+                {session && isSessionActive && (
+                    <Tooltip content="📈 Heads probability scales with time + global flips">
+                        <div style={{ ...statBoxStyle, background: 'var(--color-accent)', cursor: 'help' }}>
+                            <div style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase' }}>Heads %</div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>
+                                {((session.headsProbability ?? 0) * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                    </Tooltip>
+                )}
             </div>
 
             {/* Player Stats - Only show when session is active */}
