@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useAccount, useConnect } from "wagmi";
+import { useAccount } from "wagmi";
 import { Wallet, ConnectWallet } from "@coinbase/onchainkit/wallet";
 import { useGameStore } from "../store/useGameStore";
 import { CoinScene } from "../components/CoinScene";
@@ -9,8 +9,8 @@ import { Tooltip } from "../components/Tooltip";
 import { playButtonPress, playButtonRelease, playFlip } from "../utils/sfx";
 
 export const Home: React.FC = () => {
-  const { isConnected: isWalletConnected } = useAccount();
-  const { connect: connectWallet, connectors } = useConnect();
+  const { address, isConnected: isWalletConnected } = useAccount();
+  // const { connect: connectWallet, connectors } = useConnect();
   const {
     connect,
     isConnected,
@@ -41,16 +41,6 @@ export const Home: React.FC = () => {
     boxShadow: "var(--shadow-brutal)",
   };
 
-  const handleConnect = () => {
-    // Enforce Coinbase Wallet (Smart Wallet)
-    // Since we removed 'injected', this should be the only/primary option.
-    const connector =
-      connectors.find((c) => c.id === "coinbaseWalletSDK") || connectors[0];
-
-    if (connector) {
-      connectWallet({ connector });
-    }
-  };
 
   return (
     <div
@@ -103,11 +93,11 @@ export const Home: React.FC = () => {
             }}
           >
             <span style={{ fontWeight: 800, fontSize: "0.8rem" }}>
-              {isConnected
-                ? isSessionActive
+              {!isConnected
+                ? "CONNECTING"
+                : isSessionActive
                   ? "LIVE"
-                  : "WAITING"
-                : "CONNECTING"}
+                  : "WAITING"}
             </span>
             {session && (isSessionActive || hasLastSession) && (
               <span
@@ -244,47 +234,60 @@ export const Home: React.FC = () => {
             flexWrap: "wrap",
           }}
         >
-          <button
-            onMouseDown={playButtonPress}
-            onMouseUp={() => {
-              if (!isAuthenticated || isFlipping) {
-                playButtonRelease();
-              }
-            }}
-            onClick={() => {
-              if (!isWalletConnected) {
-                handleConnect();
-              } else if (!isAuthenticated && authRejected) {
-                retryAuth();
-              } else if (isAuthenticated) {
-                playFlip();
-                flip();
-              }
-            }}
-            disabled={isFlipping}
-            style={{
-              fontSize: "1rem",
-              padding: "0.6rem 1.5rem",
-              background: isFlipping ? "#ccc" : "var(--color-primary)",
-              flex: "1 1 auto",
-              maxWidth: "200px",
-            }}
-          >
-            {isFlipping ? (
-              "FLIPPING..."
-            ) : !isWalletConnected ? (
-              <Wallet>
-                <ConnectWallet
-                  text="CONNECT WALLET"
-                  className="bg-[#ff6b35] text-[#fffef0] font-bold border-[3px] border-[#1a1a1a] shadow-[4px_4px_0px_0px_#1a1a1a] rounded-none px-6 py-2.5 h-auto min-h-0 hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-[4px] active:translate-y-[4px] transition-all"
-                />
-              </Wallet>
-            ) : !isAuthenticated ? (
-              "SIGN IN"
-            ) : (
-              "FLIP 🪙"
-            )}
-          </button>
+          {!isWalletConnected ? (
+            <Wallet>
+              <ConnectWallet
+                text="CONNECT WALLET"
+                className="bg-[#ff6b35] text-[#fffef0] font-bold border-[3px] border-[#1a1a1a] shadow-[4px_4px_0px_0px_#1a1a1a] rounded-none px-6 py-2.5 h-auto min-h-0 hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-[4px] active:translate-y-[4px] transition-all"
+              />
+            </Wallet>
+          ) : (
+            <button
+              onMouseDown={playButtonPress}
+              onMouseUp={() => {
+                if (!isAuthenticated || isFlipping) {
+                  playButtonRelease();
+                }
+              }}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  console.log('Manual Sign In triggered');
+                  // If we are already rejected, retry. 
+                  // If not, we can trigger requestAuth manually if it didn't auto-start
+                  if (authRejected) {
+                    retryAuth();
+                  } else {
+                    if (address) {
+                      useGameStore.getState().requestAuth(address);
+                    } else {
+                      console.error('No address available for manual auth');
+                    }
+                  }
+                } else {
+                  playFlip();
+                  flip();
+                }
+              }}
+              disabled={isFlipping || !isConnected}
+              style={{
+                fontSize: "1rem",
+                padding: "0.6rem 1.5rem",
+                background: isFlipping || !isConnected ? "#ccc" : "var(--color-primary)",
+                flex: "1 1 auto",
+                maxWidth: "200px",
+              }}
+            >
+              {isFlipping ? (
+                "FLIPPING..."
+              ) : !isConnected ? (
+                "CONNECTING..."
+              ) : !isAuthenticated ? (
+                "SIGN IN"
+              ) : (
+                "FLIP 🪙"
+              )}
+            </button>
+          )}
           <button
             onMouseDown={playButtonPress}
             onMouseUp={playButtonRelease}

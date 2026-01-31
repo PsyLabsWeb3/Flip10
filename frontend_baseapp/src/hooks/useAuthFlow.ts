@@ -99,12 +99,15 @@ export function useAuthFlow() {
 
         const signAndVerify = async () => {
             try {
-                console.log('Signing nonce:', pendingAuthNonce);
+                console.log('--- AUTH STEP: Signing nonce ---');
+                console.log('Nonce:', pendingAuthNonce);
+                console.log('Address:', pendingAuthAddress);
                 const signature = await signMessageAsync({ message: pendingAuthNonce });
-                console.log('Signature obtained, verifying...');
+                console.log('--- AUTH STEP: Signature obtained, verifying ---');
+                console.log('Signature:', signature);
                 verifyAuth(pendingAuthAddress, signature);
             } catch (error) {
-                console.error('User rejected signing or error occurred:', error);
+                console.error('--- AUTH ERROR: User rejected or error ---', error);
                 // Mark as rejected so we don't auto-retry
                 authAttemptedRef.current = null;
                 useGameStore.getState()._setAuthRejected(true);

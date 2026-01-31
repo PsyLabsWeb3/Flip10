@@ -80,6 +80,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
     pendingAuthAddress: null,
 
     connect: (url = import.meta.env.VITE_BACKEND_URL || 'ws://localhost:3001/ws') => {
+        // Automatically upgrade to wss if we are on https
+        if (window.location.protocol === 'https:' && url.startsWith('ws://')) {
+            console.log('Upgrading WS to WSS for secure context');
+            url = url.replace('ws://', 'wss://');
+        }
+
         // Prevent double connections
         if (socket?.readyState === WebSocket.OPEN || socket?.readyState === WebSocket.CONNECTING) {
             return;
@@ -90,18 +96,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
             socket.onopen = null;
             socket.onclose = null;
             socket.onmessage = null;
+            socket.onerror = null;
             socket = null;
         }
 
+        console.log('Opening WebSocket connection to:', url);
         socket = new WebSocket(url);
 
         socket.onopen = () => {
-            console.log('WebSocket Connected to:', url);
+            console.log('WebSocket Connected successfully to:', url);
             set({ isConnected: true });
         };
 
-        socket.onclose = () => {
-            console.log('WebSocket Disconnected');
+        socket.onerror = (error) => {
+            console.error('WebSocket Error encountered:', error);
+            // On error, let onclose handle the state reset
+        };
+
+        socket.onclose = (event) => {
+            console.log(`WebSocket Closed (code: ${event.code}, reason: ${event.reason || 'none'})`);
             set({ isConnected: false, isAuthenticated: false, isAuthenticating: false, pendingAuthNonce: null, pendingAuthAddress: null });
         };
 
