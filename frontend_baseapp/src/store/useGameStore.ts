@@ -96,7 +96,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         socket = new WebSocket(url);
 
         socket.onopen = () => {
-            console.log('WebSocket Connected');
+            console.log('WebSocket Connected to:', url);
             set({ isConnected: true });
         };
 
@@ -112,6 +112,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
                 switch (type) {
                     case 'session_snapshot':
+                    case 'session_started':
                         set({ session: data });
                         break;
 
@@ -205,7 +206,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                         break;
                 }
             } catch (e) {
-                console.error('Failed to parse WS message', e);
+                console.error('Failed to parse WS message. Raw:', event.data, e);
             }
         };
     },

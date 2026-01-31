@@ -60,7 +60,6 @@ export function useAuthFlow() {
     // Connect WS on mount
     useEffect(() => {
         if (!isConnected) {
-            console.log('App mounted, connecting to WS...');
             connect();
         }
     }, [connect, isConnected]);
