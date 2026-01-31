@@ -57,6 +57,14 @@ export function useAuthFlow() {
         prevIsConnectedRef.current = isConnected;
     }, [isConnected]);
 
+    // Connect WS on mount
+    useEffect(() => {
+        if (!isConnected) {
+            console.log('App mounted, connecting to WS...');
+            connect();
+        }
+    }, [connect, isConnected]);
+
     // Trigger auth request when both WS and wallet are connected
     useEffect(() => {
         // All conditions must be met
