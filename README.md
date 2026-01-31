@@ -7,7 +7,6 @@
 <p align="center">
   <strong>Flip your way to victory. First to 10 heads wins it all.</strong>
 </p>
-
 <p align="center">
   <a href="https://flip10.xyz">🌐 Official Site</a> •
   <a href="#-how-it-works">How It Works</a> •
