@@ -17,6 +17,7 @@ function AppContent() {
 
   useEffect(() => {
     if (!isFrameReady) setFrameReady();
+    console.log("Flip10 Test: Commit Reflection Check - v1.0.1");
   }, [isFrameReady, setFrameReady]);
 
   // Handle WS + wallet authentication flow
