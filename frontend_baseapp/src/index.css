@@ -1,0 +1,343 @@
+@import '@coinbase/onchainkit/styles.css';
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap');
+
+:root {
+  --color-bg: #fffef0;
+  --color-primary: #ff6b35;
+  --color-secondary: #a855f7;
+  --color-accent: #22d3ee;
+  --color-success: #84cc16;
+  --color-warning: #facc15;
+  --color-danger: #ef4444;
+  --color-black: #1a1a1a;
+  --color-white: #fffef0;
+
+  --shadow-brutal: 4px 4px 0px var(--color-black);
+  --shadow-brutal-lg: 6px 6px 0px var(--color-black);
+  --shadow-brutal-hover: 2px 2px 0px var(--color-black);
+  --border-brutal: 3px solid var(--color-black);
+
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  line-height: 1.5;
+  font-weight: 500;
+  color: var(--color-black);
+  background-color: var(--color-bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  background-image:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+  /* Prevent pull-to-refresh on mobile */
+  overscroll-behavior: none;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 700;
+  color: var(--color-black);
+  margin: 0 0 1rem 0;
+}
+
+h1 {
+  font-size: 2.5rem;
+}
+
+h2 {
+  font-size: 1.75rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+}
+
+button {
+  border-radius: 0;
+  border: var(--border-brutal);
+  padding: 0.75em 1.5em;
+  font-size: 1em;
+  font-weight: 700;
+  font-family: inherit;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  cursor: pointer;
+  box-shadow: var(--shadow-brutal);
+  transition: all 0.1s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  /* Prevent text selection on mobile */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:hover {
+  transform: translate(2px, 2px);
+  box-shadow: var(--shadow-brutal-hover);
+}
+
+button:active {
+  transform: translate(4px, 4px);
+  box-shadow: none;
+}
+
+button:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+button.secondary {
+  background-color: var(--color-secondary);
+}
+
+button.ghost {
+  background-color: transparent;
+  color: var(--color-black);
+}
+
+input,
+select {
+  border: var(--border-brutal);
+  border-radius: 0;
+  padding: 0.75em 1em;
+  font-size: 1em;
+  font-family: inherit;
+  background-color: var(--color-white);
+  color: var(--color-black);
+  box-shadow: var(--shadow-brutal);
+}
+
+input:focus,
+select:focus {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.card {
+  background-color: var(--color-white);
+  border: var(--border-brutal);
+  box-shadow: var(--shadow-brutal);
+  padding: 1.5rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border: var(--border-brutal);
+  background-color: var(--color-white);
+}
+
+th,
+td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 2px solid var(--color-black);
+}
+
+th {
+  background-color: var(--color-black);
+  color: var(--color-white);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+tr:hover {
+  background-color: var(--color-warning);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal {
+  background-color: var(--color-white);
+  border: var(--border-brutal);
+  box-shadow: var(--shadow-brutal-lg);
+  padding: 1.5rem;
+  min-width: min(400px, 90vw);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--color-black);
+}
+
+.status-indicator.online {
+  background-color: var(--color-success);
+}
+
+.status-indicator.offline {
+  background-color: var(--color-danger);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25em 0.75em;
+  font-size: 0.875em;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: 2px solid var(--color-black);
+  background-color: var(--color-warning);
+}
+
+.badge.success {
+  background-color: var(--color-success);
+}
+
+.badge.danger {
+  background-color: var(--color-danger);
+  color: var(--color-white);
+}
+
+/* Leaderboard position animations */
+@keyframes lb-climb {
+  0% {
+    background: var(--color-success);
+    transform: translateY(10px);
+    opacity: 0.7;
+  }
+
+  100% {
+    background: transparent;
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes lb-descend {
+  0% {
+    background: var(--color-danger);
+    transform: translateY(-10px);
+    opacity: 0.7;
+  }
+
+  100% {
+    background: transparent;
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.lb-climb {
+  animation: lb-climb 0.5s ease-out;
+}
+
+.lb-descend {
+  animation: lb-descend 0.5s ease-out;
+}
+
+/* Streak message animation */
+@keyframes streak-pop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.streak-message {
+  animation: streak-pop 0.4s ease-out;
+}
+
+/* Responsive utilities for mobile Mini App */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  h3 {
+    font-size: 1rem;
+  }
+
+  button {
+    padding: 0.6em 1.2em;
+    font-size: 0.9em;
+  }
+
+  .modal {
+    padding: 1rem;
+    min-width: auto;
+    width: 95vw;
+  }
+}
+
+/* Extra compact for very short screens (landscape phones) */
+@media (max-height: 600px) {
+  .nav-tabs {
+    padding: 0.5rem !important;
+  }
+
+  .nav-tabs button {
+    padding: 0.35rem 0.75rem !important;
+    font-size: 0.8rem !important;
+  }
+
+  .modal {
+    padding: 0.75rem;
+    max-height: 85vh;
+  }
+
+  .modal h2,
+  .modal h3 {
+    margin-bottom: 0.5rem !important;
+    font-size: 1rem;
+  }
+
+  .modal p {
+    margin-bottom: 0.5rem !important;
+    font-size: 0.85rem;
+  }
+}

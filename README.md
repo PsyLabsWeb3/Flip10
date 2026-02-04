@@ -7,7 +7,6 @@
 <p align="center">
   <strong>Flip your way to victory. First to 10 heads wins it all.</strong>
 </p>
-
 <p align="center">
   <a href="https://flip10.xyz">🌐 Official Site</a> •
   <a href="#-how-it-works">How It Works</a> •
@@ -25,7 +24,7 @@
 
 Every flip counts. Every second matters. One winner takes all.
 
-> 💡 *Think battle royale meets provably fair gambling, powered by blockchain.*
+> 💡 _Think battle royale meets provably fair gambling, powered by blockchain._
 
 ---
 
@@ -50,15 +49,15 @@ Every flip counts. Every second matters. One winner takes all.
 
 ## ✨ Features
 
-| Feature | Description |
-|---------|-------------|
-| 🎲 **Provably Fair RNG** | Every flip is deterministic and verifiable on-chain |
-| ⚡ **Real Time Gameplay** | Sub second latency with WebSocket powered updates |
-| 🏆 **Live Leaderboard** | Watch players compete in real time |
-| 💰 **On-Chain Prize Pools** | Funds secured by smart contracts on Base |
-| 🎯 **Dynamic Odds** | Probability evolves based on session progress |
-| 🔐 **Self Custody** | Your funds, your keys. No platform custody. |
-| 🎨 **Immersive 3D UI** | Stunning coin flip animations with Three.js |
+| Feature                     | Description                                         |
+| --------------------------- | --------------------------------------------------- |
+| 🎲 **Provably Fair RNG**    | Every flip is deterministic and verifiable on-chain |
+| ⚡ **Real Time Gameplay**   | Sub second latency with WebSocket powered updates   |
+| 🏆 **Live Leaderboard**     | Watch players compete in real time                  |
+| 💰 **On-Chain Prize Pools** | Funds secured by smart contracts on Base            |
+| 🎯 **Dynamic Odds**         | Probability evolves based on session progress       |
+| 🔐 **Self Custody**         | Your funds, your keys. No platform custody.         |
+| 🎨 **Immersive 3D UI**      | Stunning coin flip animations with Three.js         |
 
 ---
 
@@ -69,17 +68,20 @@ Every flip counts. Every second matters. One winner takes all.
 </p>
 
 ### Smart Contracts
+
 - **Solidity** `^0.8.24`
 - **Foundry** (Forge) for testing & deployment
 - **OpenZeppelin** security audited libraries
 
 ### Backend
+
 - **Node.js** + **TypeScript**
 - **Fastify** (HTTP + WebSocket server)
 - **Ethers v6** for blockchain interactions
 - Deterministic, reproducible RNG
 
 ### Frontend
+
 - **React 18** + **TypeScript**
 - **Vite** for blazing fast builds
 - **wagmi** + **viem** for Web3 wallet integration
@@ -105,6 +107,7 @@ Each component has its own detailed README with setup instructions.
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - pnpm or npm
 - Foundry (for contracts)
@@ -124,6 +127,7 @@ cd frontend && npm install && cd ..
 ```
 
 See individual component READMEs for detailed setup:
+
 - [📄 Contracts README](./contracts/README.md)
 - [📄 Backend README](./backend/README.md)
 - [📄 Frontend README](./frontend/README.md)
@@ -152,6 +156,7 @@ See individual component READMEs for detailed setup:
 ```
 
 **Key Design Principles:**
+
 - 🎮 No per flip transactions (low latency, great UX)
 - 🔒 On-chain escrow & settlement only
 - ✅ Claim based payouts (gas efficient)
