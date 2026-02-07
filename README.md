@@ -172,5 +172,5 @@ MIT License. See [LICENSE](LICENSE) for details.
 ---
 
 <p align="center">
-  <sub>powered by <strong>Psy Labs</strong></sub>
+  <sub>powered with love by <strong>Psy Labs</strong></sub>
 </p>
