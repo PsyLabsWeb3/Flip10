@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useAccount } from "wagmi";
 import { Wallet, ConnectWallet } from "@coinbase/onchainkit/wallet";
+import { useMiniKit } from "@coinbase/onchainkit/minikit";
 import { useGameStore } from "../store/useGameStore";
 import { CoinScene } from "../components/CoinScene";
 import { Leaderboard } from "../components/Leaderboard";
@@ -10,6 +11,13 @@ import { playButtonPress, playButtonRelease, playFlip } from "../utils/sfx";
 
 export const Home: React.FC = () => {
   const { address, isConnected: isWalletConnected } = useAccount();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { context } = useMiniKit() as any;
+
+  // MiniKit provides address when inside Base App
+  const miniKitAddress = context?.user?.address as string | undefined;
+  const effectiveAddress = miniKitAddress || address;
+  const isEffectivelyConnected = !!miniKitAddress || isWalletConnected;
   // const { connect: connectWallet, connectors } = useConnect();
   const {
     connect,
@@ -216,7 +224,8 @@ export const Home: React.FC = () => {
             flexWrap: "wrap",
           }}
         >
-          {!isWalletConnected ? (
+          {/* Skip Connect Wallet button when inside Base App (MiniKit provides address) */}
+          {!isEffectivelyConnected ? (
             <Wallet>
               <ConnectWallet
                 text="CONNECT WALLET"
@@ -239,8 +248,8 @@ export const Home: React.FC = () => {
                   if (authRejected) {
                     retryAuth();
                   } else {
-                    if (address) {
-                      useGameStore.getState().requestAuth(address);
+                    if (effectiveAddress) {
+                      useGameStore.getState().requestAuth(effectiveAddress);
                     } else {
                       console.error("No address available for manual auth");
                     }

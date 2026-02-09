@@ -4,7 +4,7 @@
     "payload": "eyJkb21haW4iOiJmbGlwMTAucHN5bGFicy54eXoifQ",
     "signature": "PLACEHOLDER_SIGNATURE_RUN_SCRIPT_TO_GENERATE"
   },
-  "frame": {
+  "miniapp": {
     "version": "1",
     "name": "Flip10 Base App",
     "homeUrl": "https://flip10.psylabs.xyz",
