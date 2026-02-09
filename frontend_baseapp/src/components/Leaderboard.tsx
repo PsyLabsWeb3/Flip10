@@ -1,169 +1,222 @@
-import React, { useRef } from 'react';
-import { Identity, Avatar, Name } from '@coinbase/onchainkit/identity';
-import { useGameStore } from '../store/useGameStore';
+import React, { useRef } from "react";
+import { Identity, Avatar, Name } from "@coinbase/onchainkit/identity";
+import { useGameStore } from "../store/useGameStore";
 
 export const Leaderboard: React.FC = () => {
-    const { session } = useGameStore();
-    const prevPositionsRef = useRef<Map<string, number>>(new Map());
-    const animationKeyRef = useRef(0);
+  const { session } = useGameStore();
+  const prevPositionsRef = useRef<Map<string, number>>(new Map());
+  const animationKeyRef = useRef(0);
 
-    // Determine if we're showing last results (inactive session with lastSession data)
-    const isShowingLastResults = session && !session.active && session.lastSession;
+  // Determine if we're showing last results (inactive session with lastSession data)
+  const isShowingLastResults =
+    session && !session.active && session.lastSession;
 
-    // Get the appropriate leaderboard data
-    const leaderboardData = isShowingLastResults
-        ? session.lastSession?.finalLeaderboard
-        : session?.leaderboard;
+  // Get the appropriate leaderboard data
+  const leaderboardData = isShowingLastResults
+    ? session.lastSession?.finalLeaderboard
+    : session?.leaderboard;
 
-    // Get winner address for highlighting
-    const winnerAddress = isShowingLastResults ? session.lastSession?.winner : null;
+  // Get winner address for highlighting
+  const winnerAddress = isShowingLastResults
+    ? session.lastSession?.winner
+    : null;
 
-    // Track position changes for animations (only during active sessions)
-    const positionChanges = React.useMemo(() => {
-        const changes = new Map<string, 'climb' | 'descend' | null>();
+  // Track position changes for animations (only during active sessions)
+  const positionChanges = React.useMemo(() => {
+    const changes = new Map<string, "climb" | "descend" | null>();
 
-        // Skip animations for last results view
-        if (isShowingLastResults) {
-            return changes;
+    // Skip animations for last results view
+    if (isShowingLastResults) {
+      return changes;
+    }
+
+    if (session?.leaderboard) {
+      const currentPositions = new Map<string, number>();
+      session.leaderboard.forEach((entry, i) => {
+        currentPositions.set(entry.address, i);
+
+        const prevPos = prevPositionsRef.current.get(entry.address);
+        if (prevPos !== undefined) {
+          if (i < prevPos) {
+            changes.set(entry.address, "climb");
+          } else if (i > prevPos) {
+            changes.set(entry.address, "descend");
+          }
         }
+      });
 
-        if (session?.leaderboard) {
-            const currentPositions = new Map<string, number>();
-            session.leaderboard.forEach((entry, i) => {
-                currentPositions.set(entry.address, i);
-
-                const prevPos = prevPositionsRef.current.get(entry.address);
-                if (prevPos !== undefined) {
-                    if (i < prevPos) {
-                        changes.set(entry.address, 'climb');
-                    } else if (i > prevPos) {
-                        changes.set(entry.address, 'descend');
-                    }
-                }
-            });
-
-            // Update ref after calculating changes
-            prevPositionsRef.current = currentPositions;
-            if (changes.size > 0) {
-                animationKeyRef.current++;
-            }
-        }
-
-        return changes;
-    }, [session?.leaderboard, isShowingLastResults]);
-
-    // Hide leaderboard when session is inactive with no lastSession data
-    if (session && !session.active && !session.lastSession) {
-        return null;
+      // Update ref after calculating changes
+      prevPositionsRef.current = currentPositions;
+      if (changes.size > 0) {
+        animationKeyRef.current++;
+      }
     }
 
-    // Show empty state when no session or empty leaderboard during active session
-    if (!session || (!isShowingLastResults && (!session.leaderboard || session.leaderboard.length === 0))) {
-        return (
-            <div style={{
-                height: '100%',
-                padding: '1rem',
-                background: 'var(--color-white)',
-                border: 'var(--border-brutal)',
-                boxShadow: 'var(--shadow-brutal)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#666',
-                fontSize: '0.9rem',
-                textAlign: 'center'
-            }}>
-                No active streaks yet.
-            </div>
-        );
-    }
+    return changes;
+  }, [session?.leaderboard, isShowingLastResults]);
 
-    // No data to show
-    if (!leaderboardData || leaderboardData.length === 0) {
-        return null;
-    }
+  // Hide leaderboard when session is inactive with no lastSession data
+  if (session && !session.active && !session.lastSession) {
+    return null;
+  }
 
+  // Show empty state when no session or empty leaderboard during active session
+  if (
+    !session ||
+    (!isShowingLastResults &&
+      (!session.leaderboard || session.leaderboard.length === 0))
+  ) {
     return (
-        <div style={{
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            background: 'var(--color-white)',
-            border: 'var(--border-brutal)',
-            boxShadow: 'var(--shadow-brutal)',
-            overflow: 'hidden'
-        }}>
-            <h3 style={{
-                margin: 0,
-                padding: '0.75rem 1rem',
-                borderBottom: 'var(--border-brutal)',
-                fontSize: 'clamp(0.9rem, 3vw, 1.25rem)'
-            }}>
-                {isShowingLastResults ? 'LAST RESULTS' : 'LEADERBOARD'}
-            </h3>
-            {isShowingLastResults && winnerAddress && (
-                <div style={{
-                    padding: '0.5rem 1rem',
-                    background: 'var(--color-success)',
-                    borderBottom: 'var(--border-brutal)',
-                    textAlign: 'center'
-                }}>
-                    <div style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.25rem' }}>
-                        🏆 Winner
-                    </div>
-                    <div style={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 700 }}>
-                        {winnerAddress.slice(0, 6)}...{winnerAddress.slice(-4)}
-                    </div>
-                </div>
-            )}
-            <div style={{ flex: 1, overflow: 'auto', padding: '0.5rem' }}>
-                <table style={{ width: '100%', fontSize: '0.8rem' }}>
-                    <thead>
-                        <tr>
-                            <th style={{ padding: '0.4rem 0.25rem' }}>#</th>
-                            <th style={{ padding: '0.4rem 0.25rem' }}>Player</th>
-                            <th style={{ padding: '0.4rem 0.25rem' }}>Streak</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {leaderboardData.map((entry, i) => {
-                            const change = positionChanges.get(entry.address);
-                            const animClass = change === 'climb' ? 'lb-climb' : change === 'descend' ? 'lb-descend' : '';
-                            const isWinner = winnerAddress && entry.address.toLowerCase() === winnerAddress.toLowerCase();
-
-                            return (
-                                <tr
-                                    key={`${entry.address}-${animationKeyRef.current}`}
-                                    className={animClass}
-                                    style={isWinner ? { background: 'var(--color-warning)' } : undefined}
-                                >
-                                    <td style={{ fontWeight: 700, padding: '0.35rem 0.25rem' }}>{i + 1}</td>
-                                    <td style={{ fontFamily: 'monospace', padding: '0.35rem 0.25rem', fontSize: '0.7rem' }}>
-                                        <Identity
-                                            address={entry.address as `0x${string}`}
-                                            schemaId="0xf8b05c79f090979bf4a80270aba232dff11a10d9ca55c4f88de95317970f0de9"
-                                        >
-                                            <Avatar />
-                                            <Name />
-                                        </Identity>
-                                    </td>
-                                    <td style={{ padding: '0.35rem 0.25rem' }}>
-                                        <span style={{
-                                            background: i === 0 ? 'var(--color-warning)' : 'var(--color-white)',
-                                            padding: '0.1rem 0.35rem',
-                                            border: '2px solid var(--color-black)',
-                                            fontWeight: 700,
-                                            fontSize: '0.75rem'
-                                        }}>
-                                            {entry.streak}
-                                        </span>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+      <div
+        style={{
+          height: "auto",
+          padding: "1rem",
+          background: "var(--color-white)",
+          border: "var(--border-brutal)",
+          boxShadow: "var(--shadow-brutal)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#666",
+          fontSize: "0.9rem",
+          textAlign: "center",
+        }}
+      >
+        No active streaks yet.
+      </div>
     );
+  }
+
+  // No data to show
+  if (!leaderboardData || leaderboardData.length === 0) {
+    return null;
+  }
+
+  return (
+    <div
+      style={{
+        height: "auto",
+        maxHeight: "300px",
+        display: "flex",
+        flexDirection: "column",
+        background: "var(--color-white)",
+        border: "var(--border-brutal)",
+        boxShadow: "var(--shadow-brutal)",
+        overflow: "hidden",
+      }}
+    >
+      <h3
+        style={{
+          margin: 0,
+          padding: "0.75rem 1rem",
+          borderBottom: "var(--border-brutal)",
+          fontSize: "clamp(0.9rem, 3vw, 1.25rem)",
+        }}
+      >
+        {isShowingLastResults ? "LAST RESULTS" : "LEADERBOARD"}
+      </h3>
+      {isShowingLastResults && winnerAddress && (
+        <div
+          style={{
+            padding: "0.5rem 1rem",
+            background: "var(--color-success)",
+            borderBottom: "var(--border-brutal)",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "0.65rem",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              marginBottom: "0.25rem",
+            }}
+          >
+            🏆 Winner
+          </div>
+          <div
+            style={{
+              fontFamily: "monospace",
+              fontSize: "0.75rem",
+              fontWeight: 700,
+            }}
+          >
+            {winnerAddress.slice(0, 6)}...{winnerAddress.slice(-4)}
+          </div>
+        </div>
+      )}
+      <div style={{ flex: 1, overflow: "auto", padding: "0.5rem" }}>
+        <table style={{ width: "100%", fontSize: "0.8rem" }}>
+          <thead>
+            <tr>
+              <th style={{ padding: "0.4rem 0.25rem" }}>#</th>
+              <th style={{ padding: "0.4rem 0.25rem" }}>Player</th>
+              <th style={{ padding: "0.4rem 0.25rem" }}>Streak</th>
+            </tr>
+          </thead>
+          <tbody>
+            {leaderboardData.map((entry, i) => {
+              const change = positionChanges.get(entry.address);
+              const animClass =
+                change === "climb"
+                  ? "lb-climb"
+                  : change === "descend"
+                    ? "lb-descend"
+                    : "";
+              const isWinner =
+                winnerAddress &&
+                entry.address.toLowerCase() === winnerAddress.toLowerCase();
+
+              return (
+                <tr
+                  key={`${entry.address}-${animationKeyRef.current}`}
+                  className={animClass}
+                  style={
+                    isWinner
+                      ? { background: "var(--color-warning)" }
+                      : undefined
+                  }
+                >
+                  <td style={{ fontWeight: 700, padding: "0.35rem 0.25rem" }}>
+                    {i + 1}
+                  </td>
+                  <td
+                    style={{
+                      fontFamily: "monospace",
+                      padding: "0.35rem 0.25rem",
+                      fontSize: "0.7rem",
+                    }}
+                  >
+                    <Identity
+                      address={entry.address as `0x${string}`}
+                      schemaId="0xf8b05c79f090979bf4a80270aba232dff11a10d9ca55c4f88de95317970f0de9"
+                    >
+                      <Avatar />
+                      <Name />
+                    </Identity>
+                  </td>
+                  <td style={{ padding: "0.35rem 0.25rem" }}>
+                    <span
+                      style={{
+                        background:
+                          i === 0
+                            ? "var(--color-warning)"
+                            : "var(--color-white)",
+                        padding: "0.1rem 0.35rem",
+                        border: "2px solid var(--color-black)",
+                        fontWeight: 700,
+                        fontSize: "0.75rem",
+                      }}
+                    >
+                      {entry.streak}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 };
