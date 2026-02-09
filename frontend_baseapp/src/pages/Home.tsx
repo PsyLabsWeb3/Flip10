@@ -3,7 +3,7 @@ import { useAccount } from "wagmi";
 import { Wallet, ConnectWallet } from "@coinbase/onchainkit/wallet";
 import { useGameStore } from "../store/useGameStore";
 import { CoinScene } from "../components/CoinScene";
-import { LeaderboardModal } from "../components/LeaderboardModal";
+import { Leaderboard } from "../components/Leaderboard";
 import { BuyFlipsModal } from "../components/BuyFlipsModal";
 import { Tooltip } from "../components/Tooltip";
 import { playButtonPress, playButtonRelease, playFlip } from "../utils/sfx";
@@ -25,7 +25,7 @@ export const Home: React.FC = () => {
     setShowBuyModal,
   } = useGameStore();
 
-  const [showLeaderboard, setShowLeaderboard] = React.useState(false);
+  // const [showLeaderboard, setShowLeaderboard] = React.useState(false);
 
   useEffect(() => {
     connect();
@@ -40,7 +40,6 @@ export const Home: React.FC = () => {
     border: "var(--border-brutal)",
     boxShadow: "var(--shadow-brutal)",
   };
-
 
   return (
     <div
@@ -107,26 +106,6 @@ export const Home: React.FC = () => {
               </span>
             )}
           </div>
-        </div>
-
-        {/* Leaderboard Button - Now in Row 1, taking the 'Session' spot (Yellow) */}
-        <div
-          onClick={() => setShowLeaderboard(true)}
-          onMouseDown={playButtonPress}
-          onMouseUp={playButtonRelease}
-          style={{
-            ...statBoxStyle,
-            background: "var(--color-warning)", // Yellow like the session was
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            fontWeight: 800,
-            fontSize: "0.75rem",
-            minWidth: "110px",
-          }}
-        >
-          📜 LEADERBOARD
         </div>
 
         {/* Heads % - Only show when active */}
@@ -208,10 +187,11 @@ export const Home: React.FC = () => {
         </div>
       ) : null}
 
-      {/* Main Content - Coin Only */}
+      {/* Main Content - Coin and Leaderboard */}
       <div
         style={{
           display: "flex",
+          flexDirection: "column",
           gap: "0.5rem",
           flex: 1,
           minHeight: 0,
@@ -221,6 +201,8 @@ export const Home: React.FC = () => {
         <div style={{ flex: 1, minWidth: 0, minHeight: 0 }}>
           <CoinScene />
         </div>
+        {/* Leaderboard */}
+        <Leaderboard />
       </div>
 
       {/* Buttons Row - Only show when session is active */}
@@ -251,8 +233,8 @@ export const Home: React.FC = () => {
               }}
               onClick={() => {
                 if (!isAuthenticated) {
-                  console.log('Manual Sign In triggered');
-                  // If we are already rejected, retry. 
+                  console.log("Manual Sign In triggered");
+                  // If we are already rejected, retry.
                   // If not, we can trigger requestAuth manually if it didn't auto-start
                   if (authRejected) {
                     retryAuth();
@@ -260,7 +242,7 @@ export const Home: React.FC = () => {
                     if (address) {
                       useGameStore.getState().requestAuth(address);
                     } else {
-                      console.error('No address available for manual auth');
+                      console.error("No address available for manual auth");
                     }
                   }
                 } else {
@@ -272,20 +254,19 @@ export const Home: React.FC = () => {
               style={{
                 fontSize: "1rem",
                 padding: "0.6rem 1.5rem",
-                background: isFlipping || !isConnected ? "#ccc" : "var(--color-primary)",
+                background:
+                  isFlipping || !isConnected ? "#ccc" : "var(--color-primary)",
                 flex: "1 1 auto",
                 maxWidth: "200px",
               }}
             >
-              {isFlipping ? (
-                "FLIPPING..."
-              ) : !isConnected ? (
-                "CONNECTING..."
-              ) : !isAuthenticated ? (
-                "SIGN IN"
-              ) : (
-                "FLIP 🪙"
-              )}
+              {isFlipping
+                ? "FLIPPING..."
+                : !isConnected
+                  ? "CONNECTING..."
+                  : !isAuthenticated
+                    ? "SIGN IN"
+                    : "FLIP 🪙"}
             </button>
           )}
           <button
@@ -301,9 +282,9 @@ export const Home: React.FC = () => {
       )}
 
       {showBuyModal && <BuyFlipsModal onClose={() => setShowBuyModal(false)} />}
-      {showLeaderboard && (
+      {/* {showLeaderboard && (
         <LeaderboardModal onClose={() => setShowLeaderboard(false)} />
-      )}
+      )} */}
     </div>
   );
 };
