@@ -1,5 +1,5 @@
 import { flip10 } from "./contract.js";
-import { provider } from "./base.js";
+import { getProvider } from "./base.js";
 import { addFlips } from "../session/allowance.js";
 
 export async function rebuildAllowanceFromChain(
@@ -14,12 +14,12 @@ export async function rebuildAllowanceFromChain(
     return;
   }
 
-  const latestBlock = await provider.getBlockNumber();
+  const latestBlock = await getProvider().getBlockNumber();
 
   const fromBlock = Math.max(latestBlock - 9, 0);
   const toBlock = latestBlock;
 
-  const logs = await provider.getLogs({
+  const logs = await getProvider().getLogs({
     address: flip10.target,
     topics: [
       event.topicHash,
