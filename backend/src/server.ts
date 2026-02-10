@@ -18,9 +18,19 @@ import { restoreSessionFromDisk } from "./session/runtime.js";
 import { rebuildAllowanceFromChain } from "./chain/rebuildAllowance.js";
 import { canConnect, onDisconnect } from "./ws/limits.js";
 import crypto from "crypto";
-import { verifyMessage } from "ethers";
+import { verifyMessage, Contract, hashMessage } from "ethers";
 import { buildFinalLeaderboard } from "./session/leaderboard.js";
 import { finalizeSessionOnChain } from "./chain/finalizeSession.js";
+import { getProvider } from "./chain/base.js";
+
+const EIP1271_MAGIC_VALUE = "0x1626ba7e";
+const EIP6492_VERIFIER_ADDRESS = "0x0000000000000000000000000000000000006492";
+const EIP1271_ABI = [
+  "function isValidSignature(bytes32 hash, bytes signature) view returns (bytes4)"
+];
+const EIP6492_ABI = [
+  "function isValidSignature(address signer, bytes32 hash, bytes signature) view returns (bytes4)"
+];
 
 dotenv.config();
 
@@ -96,7 +106,7 @@ export async function buildServer(): Promise<FastifyInstance> {
             })
         );
 
-        ws.on("message", (raw: Buffer | string) => {
+        ws.on("message", async (raw: Buffer | string) => {
             const now = Date.now();
             if (now - windowStart > 1000) {
                 windowStart = now;
@@ -132,6 +142,7 @@ export async function buildServer(): Promise<FastifyInstance> {
                 }
 
                 if (msg?.type === "auth_verify") {
+                    console.log(msg);
                     const { address, signature } = msg;
 
                     if (!authNonce || !address || !signature) {
@@ -140,9 +151,58 @@ export async function buildServer(): Promise<FastifyInstance> {
                     }
 
                     try {
-                        const recovered = verifyMessage(authNonce, signature);
+                        const isEOASignature =
+                            typeof signature === "string" &&
+                            signature.startsWith("0x") &&
+                            signature.length === 132;
 
-                        if (recovered.toLowerCase() !== address.toLowerCase()) {
+                        let verified = false;
+
+                        if (isEOASignature) {
+                            // EOA signature verification
+                            console.log("Verifying EOA signature for address:", address);
+                            const recovered = verifyMessage(authNonce, signature);
+                            verified = recovered.toLowerCase() === address.toLowerCase();
+                        } else {
+                            // Smart wallet signature verification
+                            console.log("Verifying smart wallet signature for address:", address);
+                            const messageHash = hashMessage(authNonce);
+
+                            const wallet = new Contract(
+                                address,
+                                EIP1271_ABI,
+                                getProvider()
+                            );
+
+                            try {
+                                // Primary: EIP-1271 (deployed wallet)
+                                const result = await wallet.isValidSignature(messageHash, signature);
+                                verified = result.toLowerCase() === EIP1271_MAGIC_VALUE;
+                            } catch (err) {
+                                // Fallback: EIP-6492 (counterfactual wallet)
+                                console.log(
+                                    "EIP-1271 failed, attempting EIP-6492 verification for address:",
+                                    address
+                                );
+
+                                const verifier = new Contract(
+                                    EIP6492_VERIFIER_ADDRESS,
+                                    EIP6492_ABI,
+                                    getProvider()
+                                );
+
+                                const result = await verifier.isValidSignature(
+                                    address,
+                                    messageHash,
+                                    signature
+                                );
+
+                                verified = result.toLowerCase() === EIP1271_MAGIC_VALUE;
+                            }
+                        }
+
+                        if (!verified) {
+                            console.log("Authentication failed for address:", address);
                             ws.send(JSON.stringify({ type: "auth_failed" }));
                             return;
                         }
@@ -150,6 +210,7 @@ export async function buildServer(): Promise<FastifyInstance> {
                         authenticated = true;
                         authedAddress = address;
 
+                        console.log("Authentication succeeded for address:", address);
                         ws.send(JSON.stringify({ type: "auth_ok" }));
 
                         const session = getSession();
@@ -162,7 +223,8 @@ export async function buildServer(): Promise<FastifyInstance> {
                                 }));
                             }
                         }
-                    } catch {
+                    } catch (err) {
+                        console.error("Auth verify error:", err);
                         ws.send(JSON.stringify({ type: "auth_failed" }));
                     }
 
